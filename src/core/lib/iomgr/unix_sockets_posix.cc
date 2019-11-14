@@ -53,6 +53,7 @@ grpc_error* grpc_resolve_unix_domain_address(const char* name,
     gpr_free(err_msg);
     return err;
   }
+  gpr_log(GPR_INFO, "resolving unix address now for %s", name);
   *addrs = static_cast<grpc_resolved_addresses*>(
       gpr_malloc(sizeof(grpc_resolved_addresses)));
   (*addrs)->naddrs = 1;
@@ -63,6 +64,9 @@ grpc_error* grpc_resolve_unix_domain_address(const char* name,
   strncpy(un->sun_path, name, sizeof(un->sun_path));
   (*addrs)->addrs->len =
       static_cast<socklen_t>(strlen(un->sun_path) + sizeof(un->sun_family) + 1);
+  if (un->sun_path[0] == '@') {
+    un->sun_path[0] = '\0';
+  }
   return GRPC_ERROR_NONE;
 }
 
@@ -97,7 +101,11 @@ char* grpc_sockaddr_to_uri_unix_if_possible(
   }
 
   char* result;
-  gpr_asprintf(&result, "unix:%s", ((struct sockaddr_un*)addr)->sun_path);
+  if (((struct sockaddr_un*)addr)->sun_path[0] == '\0' && ((struct sockaddr_un*)addr)->sun_path[1] > 0) {
+    gpr_asprintf(&result, "unix:@%s", ((struct sockaddr_un*)addr)->sun_path + 1);
+  } else {
+    gpr_asprintf(&result, "unix:%s", ((struct sockaddr_un*)addr)->sun_path);
+  }
   return result;
 }
 

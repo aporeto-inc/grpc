@@ -54,6 +54,8 @@ static grpc_error* posix_blocking_resolve_address(
   size_t i;
   grpc_error* err;
 
+  gpr_log(GPR_INFO, "resolving address now for %s", name);
+
   if (name[0] == 'u' && name[1] == 'n' && name[2] == 'i' && name[3] == 'x' &&
       name[4] == ':' && name[5] != 0) {
     return grpc_resolve_unix_domain_address(name + 5, addresses);
