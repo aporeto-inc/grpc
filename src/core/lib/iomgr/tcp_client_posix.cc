@@ -28,6 +28,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/un.h>
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -298,9 +299,18 @@ void grpc_tcp_client_create_from_prepared_fd(
   int err;
   async_connect* ac;
   do {
-    char* log_addr_str = grpc_sockaddr_to_uri(addr);
-    gpr_log(GPR_INFO, "calling connect to '%s': %02hhx %02hhx %02hhx %02hhx", log_addr_str, addr->addr[0], addr->addr[1], addr->addr[2], addr->addr[3]);
-    gpr_free(log_addr_str);
+    if (grpc_is_unix_socket(addr)) {
+      char* log_addr_str = grpc_sockaddr_to_uri(addr);
+      struct sockaddr_un* un = reinterpret_cast<struct sockaddr_un*>(const_cast<char*>(addr->addr));
+      gpr_log(GPR_INFO, "calling connect to '%s' (len %d): %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
+              log_addr_str, addr->len,
+              un->sun_path[0], un->sun_path[1], un->sun_path[2], un->sun_path[3],
+              un->sun_path[4], un->sun_path[5], un->sun_path[6], un->sun_path[7],
+              un->sun_path[8], un->sun_path[9], un->sun_path[10], un->sun_path[11],
+              un->sun_path[12], un->sun_path[13], un->sun_path[14], un->sun_path[15],
+              un->sun_path[16], un->sun_path[17], un->sun_path[18], un->sun_path[19]);
+      gpr_free(log_addr_str);
+    }
     err = connect(fd, reinterpret_cast<const grpc_sockaddr*>(addr->addr),
                   addr->len);
   } while (err < 0 && errno == EINTR);
