@@ -62,10 +62,13 @@ grpc_error* grpc_resolve_unix_domain_address(const char* name,
   un = reinterpret_cast<struct sockaddr_un*>((*addrs)->addrs->addr);
   un->sun_family = AF_UNIX;
   strncpy(un->sun_path, name, sizeof(un->sun_path));
-  (*addrs)->addrs->len =
-      static_cast<socklen_t>(strlen(un->sun_path) + sizeof(un->sun_family) + 1);
   if (un->sun_path[0] == '@') {
+    (*addrs)->addrs->len =
+      static_cast<socklen_t>(sizeof(un->sun_family) + strlen(un->sun_path));
     un->sun_path[0] = '\0';
+  } else {
+    (*addrs)->addrs->len =
+      static_cast<socklen_t>(strlen(un->sun_path) + sizeof(un->sun_family) + 1);
   }
   return GRPC_ERROR_NONE;
 }
