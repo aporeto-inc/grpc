@@ -87,6 +87,10 @@ void grpc_unlink_if_unix_domain_socket(
       const_cast<char*>(resolved_addr->addr));
   struct stat st;
 
+  if (un->sun_path[0] == '\0') {
+    return;
+  }
+
   if (stat(un->sun_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFSOCK) {
     unlink(un->sun_path);
   }

@@ -298,6 +298,9 @@ void grpc_tcp_client_create_from_prepared_fd(
   int err;
   async_connect* ac;
   do {
+    char* log_addr_str = grpc_sockaddr_to_uri(addr);
+    gpr_log(GPR_INFO, "calling connect to '%s': %02hhx %02hhx %02hhx %02hhx", log_addr_str, addr->addr[0], addr->addr[1], addr->addr[2], addr->addr[3]);
+    gpr_free(log_addr_str);
     err = connect(fd, reinterpret_cast<const grpc_sockaddr*>(addr->addr),
                   addr->len);
   } while (err < 0 && errno == EINTR);

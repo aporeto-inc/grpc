@@ -56,6 +56,10 @@ bool grpc_parse_unix(const grpc_uri* uri,
   if (path_len == maxlen) return false;
   un->sun_family = AF_UNIX;
   strcpy(un->sun_path, uri->path);
+  if (un->sun_path[0] == '@') {
+    gpr_log(GPR_INFO, "Abstract AF_UNIX socket detected: '%s', adjusting sun_path[0]", uri->path);
+    un->sun_path[0] = '\0';
+  }
   resolved_addr->len = static_cast<socklen_t>(sizeof(*un));
   return true;
 }

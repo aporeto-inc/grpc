@@ -431,7 +431,9 @@ grpc_error* grpc_create_dualstack_socket_using_factory(
     family = AF_INET;
   }
   *dsmode = family == AF_INET ? GRPC_DSMODE_IPV4 : GRPC_DSMODE_NONE;
-  gpr_log(GPR_INFO, "creating socket for family %d type %d and protocol %d for addr '%s' (with factory: %s)", family, type, protocol, grpc_sockaddr_to_uri(resolved_addr), (factory != nullptr) ? "true" : "false");
+  char* log_addr_str = grpc_sockaddr_to_uri(resolved_addr);
+  gpr_log(GPR_INFO, "creating socket for family %d type %d and protocol %d for addr '%s' (with factory: %s)", family, type, protocol, log_addr_str, (factory != nullptr) ? "true" : "false");
+  gpr_free(log_addr_str);
   *newfd = create_socket(factory, family, type, protocol);
   return error_for_fd(*newfd, resolved_addr);
 }
